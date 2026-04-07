@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Full-Text Search — Alabama Legislative Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/alabama-legislature-dashboard/static/css/style.css">
+  <link rel="stylesheet" href="/alabama-legislature-dashboard/static/css/components.css">
+  <script>window.INTERNAL_MODE = false;</script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="/alabama-legislature-dashboard/" class="nav-brand"><span>AL</span> Legislature</a>
+      <div class="nav-links">
+        <a href="/alabama-legislature-dashboard/">Home</a>
+        <a href="/alabama-legislature-dashboard/bills">Bills</a>
+        <a href="/alabama-legislature-dashboard/legislators">Legislators</a>
+        <a href="/alabama-legislature-dashboard/voting-analysis">Voting Analysis</a>
+        <a href="/alabama-legislature-dashboard/controversial">Controversial</a>
+        <a href="/alabama-legislature-dashboard/search">Full-Text Search</a>
+      </div>
+      <div class="nav-search" id="nav-search">
+        <input type="text" id="nav-search-input" placeholder="Search bills or legislators…" autocomplete="off">
+        <div class="nav-search-results" id="nav-search-results"></div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    
+<div class="page-header">
+  <h1>Full-Text Bill Search</h1>
+  <p>Search inside the actual text of bills — not just titles. Find language buried deep in legislation.</p>
+</div>
+
+<div class="filters" id="fts-filters">
+  <div class="filter-group">
+    <label>Search Text</label>
+    <input type="text" id="fts-query" placeholder="e.g. eminent domain, tax increase, gambling…" style="min-width:280px">
+  </div>
+  <div class="filter-group">
+    <label>Session</label>
+    <select id="fts-session"></select>
+  </div>
+  <div class="filter-group">
+    <label>Version</label>
+    <select id="fts-version">
+      <option value="">All Versions</option>
+      <option value="Introduced">Introduced</option>
+      <option value="Engrossed">Engrossed</option>
+      <option value="Enrolled">Enrolled</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <label>Sponsor</label>
+    <select id="fts-sponsor" style="min-width:200px">
+      <option value="">Any Sponsor</option>
+    </select>
+  </div>
+  <button class="btn btn-primary" id="fts-search-btn">Search</button>
+</div>
+
+<div id="fts-stats" style="margin-bottom:12px"></div>
+<div id="fts-results"><div class="empty-state">Search inside bill text to find specific language, provisions, or topics.</div></div>
+<div class="pagination" id="fts-pagination"></div>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-disclaimer">
+        The Alabama Legislature&rsquo;s official site (<a href="https://alison.legislature.state.al.us" target="_blank">ALISON</a>)
+        is the authoritative source for all legislative information. This dashboard is an independent analysis tool
+        and may contain errors &mdash; always verify critical information against official sources.
+      </div>
+      <div style="margin-top:8px">Alabama Legislative Dashboard &middot; 2010&ndash;2026</div>
+    </div>
+  </footer>
+
+  <script src="/alabama-legislature-dashboard/static/js/app.js"></script>
+  <script>window.BASE_URL = "/alabama-legislature-dashboard";</script>
+  <script src="/alabama-legislature-dashboard/static/js/static-adapter.js"></script>
+  
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const queryInput = document.getElementById('fts-query');
+  const sessionSelect = document.getElementById('fts-session');
+  const versionSelect = document.getElementById('fts-version');
+  const sponsorSelect = document.getElementById('fts-sponsor');
+  const resultsEl = document.getElementById('fts-results');
+  const paginationEl = document.getElementById('fts-pagination');
+  const statsEl = document.getElementById('fts-stats');
+
+  populateSessionSelect(sessionSelect, '');
+
+  // Load stats
+  try {
+    const stats = await API.get('/api/fulltext/stats');
+    if (stats.summary) {
+      const s = stats.summary;
+      statsEl.innerHTML = `<p style="font-size:12px;color:var(--text-muted)">
+        Corpus: <strong>${(s.total_documents || 0).toLocaleString()}</strong> documents,
+        <strong>${(s.total_words || 0).toLocaleString()}</strong> words,
+        <strong>${(s.unique_bills || 0).toLocaleString()}</strong> bills,
+        <strong>${s.sessions_covered || 0}</strong> sessions indexed
+      </p>`;
+    }
+  } catch(e) {}
+
+  // Restore URL state
+  const params = getParams();
+  if (params.q) queryInput.value = params.q;
+  if (params.version) versionSelect.value = params.version;
+
+  // Load sponsor dropdown when session changes
+  async function refreshSponsors() {
+    const session = sessionSelect.value;
+    try {
+      let url = '/api/legislators/list';
+      if (session) url += `?session=${encodeURIComponent(session)}`;
+      const resp = await fetch(url);
+      const legislators = await resp.json();
+      const currentVal = sponsorSelect.value;
+      sponsorSelect.innerHTML = '<option value="">Any Sponsor</option>';
+      legislators.forEach(l => {
+        const opt = document.createElement('option');
+        opt.value = l.people_id;
+        opt.textContent = `${l.name} (${l.party || ''})`;
+        if (String(l.people_id) === (params.people_id || currentVal)) opt.selected = true;
+        sponsorSelect.appendChild(opt);
+      });
+    } catch(e) {}
+  }
+
+  sessionSelect.addEventListener('change', refreshSponsors);
+  setTimeout(refreshSponsors, 400);
+
+  // Search
+  document.getElementById('fts-search-btn').addEventListener('click', () => doSearch());
+  queryInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+  if (params.q) setTimeout(() => doSearch(), 500);
+
+  async function doSearch(page = 1) {
+    const q = queryInput.value.trim();
+    if (!q) { resultsEl.innerHTML = '<div class="empty-state">Enter a search term.</div>'; return; }
+
+    const searchParams = {
+      q,
+      session: sessionSelect.value,
+      version: versionSelect.value,
+      people_id: sponsorSelect.value,
+      page
+    };
+    setParams(searchParams);
+    showLoading(resultsEl);
+
+    try {
+      const data = await API.get('/api/fulltext/search', searchParams);
+
+      if (!data.results || !data.results.length) {
+        showEmpty(resultsEl, `No bills found containing "${escHtml(q)}".`);
+        paginationEl.innerHTML = '';
+        return;
+      }
+
+      resultsEl.innerHTML = `
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">
+          <strong>${data.total.toLocaleString()}</strong> document${data.total !== 1 ? 's' : ''} containing
+          "<strong>${escHtml(data.query)}</strong>"
+        </p>
+        ${data.results.map(r => `
+          <div class="card" style="margin-bottom:10px">
+            <div class="card-body" style="padding:14px 18px">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;flex-wrap:wrap;gap:6px">
+                <div>
+                  <a href="/bills/${encodeURIComponent(r.source_session)}/${r.bill_id}?q=${encodeURIComponent(q)}" style="font-weight:700;font-size:15px">${escHtml(r.bill_number)}</a>
+                  <span style="font-size:12px;color:var(--text-muted);margin-left:6px">${escHtml(r.display_name)}</span>
+                  <span class="badge badge-default" style="margin-left:6px">${escHtml(r.version)}</span>
+                  ${r.status_desc ? statusBadge(r.status_desc) : ''}
+                </div>
+                <div style="font-size:11px;color:var(--text-muted)">
+                  ${r.page_count} pg, ${r.word_count.toLocaleString()} words
+                </div>
+              </div>
+              <div style="font-size:13px;margin-bottom:6px">${escHtml(r.title)}</div>
+              <div style="font-size:12px;color:var(--text-secondary);background:#f8f9fb;padding:8px 12px;border-radius:4px;line-height:1.6">
+                ${r.snippet}
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      `;
+
+      renderPagination(paginationEl, data, pg => doSearch(pg));
+    } catch(e) {
+      resultsEl.innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
+    }
+  }
+});
+</script>
+
+</body>
+</html>

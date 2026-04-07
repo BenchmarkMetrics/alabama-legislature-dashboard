@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alabama Legislative Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/alabama-legislature-dashboard/static/css/style.css">
+  <link rel="stylesheet" href="/alabama-legislature-dashboard/static/css/components.css">
+  <script>window.INTERNAL_MODE = false;</script>
+</head>
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="/alabama-legislature-dashboard/" class="nav-brand"><span>AL</span> Legislature</a>
+      <div class="nav-links">
+        <a href="/alabama-legislature-dashboard/">Home</a>
+        <a href="/alabama-legislature-dashboard/bills">Bills</a>
+        <a href="/alabama-legislature-dashboard/legislators">Legislators</a>
+        <a href="/alabama-legislature-dashboard/voting-analysis">Voting Analysis</a>
+        <a href="/alabama-legislature-dashboard/controversial">Controversial</a>
+        <a href="/alabama-legislature-dashboard/search">Full-Text Search</a>
+      </div>
+      <div class="nav-search" id="nav-search">
+        <input type="text" id="nav-search-input" placeholder="Search bills or legislators…" autocomplete="off">
+        <div class="nav-search-results" id="nav-search-results"></div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+  <div>
+    <h1>Alabama Legislative Dashboard</h1>
+    <p>Search and analyze Alabama legislation, legislators, and voting patterns across 30 sessions (2010–2026).</p>
+  </div>
+  <div>
+    <label for="home-session" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:4px">Session</label>
+    <select id="home-session" class="session-select" style="min-width:250px"></select>
+  </div>
+</div>
+
+<!-- Stats Row -->
+<div class="stats-grid" id="home-stats" style="grid-template-columns:repeat(6,1fr)">
+  <div class="stat-card"><div class="stat-value" id="stat-bills">—</div><div class="stat-label">Bills</div></div>
+  <div class="stat-card"><div class="stat-value" id="stat-passed">—</div><div class="stat-label">Passed</div><div class="stat-sub" id="stat-pass-rate"></div></div>
+  <div class="stat-card"><div class="stat-value" id="stat-legislators">—</div><div class="stat-label">Legislators</div></div>
+  <div class="stat-card"><div class="stat-value" id="stat-rollcalls">—</div><div class="stat-label">Roll Calls</div></div>
+  <div class="stat-card"><div class="stat-value" id="stat-partyline">—</div><div class="stat-label">Party-Line Votes</div></div>
+  <div class="stat-card"><div class="stat-value" id="stat-controversial">—</div><div class="stat-label">Controversial Bills</div></div>
+</div>
+
+<!-- Two-column layout -->
+<div class="dashboard-grid">
+  <!-- Left column -->
+  <div class="dashboard-col">
+    <!-- Most Controversial -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        Most Controversial Bills
+        <a href="/alabama-legislature-dashboard/controversial" style="font-size:12px;font-weight:500">View All</a>
+      </div>
+      <div class="card-body" id="dash-controversial">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card">
+      <div class="card-header">Recent Activity</div>
+      <div class="card-body" id="dash-recent">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right column -->
+  <div class="dashboard-col">
+    <!-- Party-Line Votes -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        Recent Party-Line Votes
+        <a href="/alabama-legislature-dashboard/voting-analysis" style="font-size:12px;font-weight:500">View All</a>
+      </div>
+      <div class="card-body" id="dash-partyline">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Close Votes -->
+    <div class="card">
+      <div class="card-header">Closest Votes</div>
+      <div class="card-body" id="dash-close">
+        <div class="loading">Loading…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const sessionSelect = document.getElementById('home-session');
+  const latestSession = await getLatestSession();
+  populateSessionSelect(sessionSelect, latestSession);
+
+  // Remove "All Sessions" — homepage always needs a specific session
+  setTimeout(() => {
+    const allOpt = sessionSelect.querySelector('option[value=""]');
+    if (allOpt) allOpt.remove();
+    if (sessionSelect.value) loadDashboard(sessionSelect.value);
+  }, 300);
+
+  sessionSelect.addEventListener('change', () => loadDashboard(sessionSelect.value));
+});
+
+async function loadDashboard(session) {
+  const els = ['dash-controversial', 'dash-partyline', 'dash-close', 'dash-recent'];
+  els.forEach(id => showLoading(document.getElementById(id)));
+
+  try {
+    const data = await API.get('/api/dashboard', { session });
+    renderStats(data.stats);
+    renderControversial(data.top_controversial, session);
+    renderPartyLine(data.party_line_votes, session);
+    renderCloseVotes(data.close_votes, session);
+    renderRecent(data.recent, session);
+  } catch (e) {
+    els.forEach(id => {
+      document.getElementById(id).innerHTML = '<div class="empty-state">Error loading data</div>';
+    });
+  }
+}
+
+function renderStats(s) {
+  document.getElementById('stat-bills').textContent = (s.total_bills || 0).toLocaleString();
+  document.getElementById('stat-passed').textContent = (s.passed_bills || 0).toLocaleString();
+  document.getElementById('stat-pass-rate').textContent = `${s.pass_rate || 0}% pass rate`;
+  document.getElementById('stat-legislators').textContent = (s.legislators || 0).toLocaleString();
+  document.getElementById('stat-rollcalls').textContent = (s.roll_calls || 0).toLocaleString();
+  document.getElementById('stat-partyline').textContent = (s.party_line_votes || 0).toLocaleString();
+  document.getElementById('stat-controversial').textContent = (s.controversial_bills || 0).toLocaleString();
+}
+
+function renderControversial(bills, session) {
+  const el = document.getElementById('dash-controversial');
+  if (!bills.length) { showEmpty(el, 'No controversial bills scored yet.'); return; }
+  el.innerHTML = `<div class="dash-list">
+    ${bills.map(b => `
+      <div class="dash-list-item">
+        <div class="dash-list-main">
+          <a href="/bills/${encodeURIComponent(session)}/${b.bill_id}" class="dash-list-link">
+            <span class="dash-bill-num">${escHtml(b.bill_number)}</span>
+            ${escHtml(truncate(b.title, 80))}
+          </a>
+        </div>
+        <div class="dash-list-meta">
+          <span class="dash-score" title="Controversy score">${Math.round(b.controversy_score)}</span>
+          ${b.news_count ? `<span class="dash-news">${b.news_count} article${b.news_count > 1 ? 's' : ''}</span>` : ''}
+          ${statusBadge(b.status_desc)}
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function renderPartyLine(votes, session) {
+  const el = document.getElementById('dash-partyline');
+  if (!votes.length) { showEmpty(el, 'No party-line votes found.'); return; }
+  el.innerHTML = `<div class="dash-list">
+    ${votes.map(v => `
+      <div class="dash-list-item">
+        <div class="dash-list-main">
+          <a href="/bills/${encodeURIComponent(session)}/${v.bill_id}" class="dash-list-link">
+            <span class="dash-bill-num">${escHtml(v.bill_number)}</span>
+            ${escHtml(truncate(v.title, 70))}
+          </a>
+        </div>
+        <div class="dash-list-meta">
+          <span class="dash-party-split">
+            <span class="badge badge-r" style="font-size:10px">R ${v.r_yea}-${v.r_nay}</span>
+            <span class="badge badge-d" style="font-size:10px">D ${v.d_yea}-${v.d_nay}</span>
+          </span>
+          <span class="dash-date">${formatDate(v.date)}</span>
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function renderCloseVotes(votes, session) {
+  const el = document.getElementById('dash-close');
+  if (!votes.length) { showEmpty(el, 'No close votes found.'); return; }
+  el.innerHTML = `<div class="dash-list">
+    ${votes.map(v => `
+      <div class="dash-list-item">
+        <div class="dash-list-main">
+          <a href="/bills/${encodeURIComponent(session)}/${v.bill_id}" class="dash-list-link">
+            <span class="dash-bill-num">${escHtml(v.bill_number)}</span>
+            ${escHtml(truncate(v.title, 70))}
+          </a>
+        </div>
+        <div class="dash-list-meta">
+          <span class="dash-margin" title="Vote margin">
+            ${v.yea}-${v.nay} <span style="color:var(--text-muted)">(margin: ${v.margin})</span>
+          </span>
+          <span class="dash-date">${formatDate(v.date)}</span>
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function renderRecent(bills, session) {
+  const el = document.getElementById('dash-recent');
+  if (!bills.length) { showEmpty(el, 'No recent activity.'); return; }
+  el.innerHTML = `<div class="dash-list compact">
+    ${bills.map(b => `
+      <div class="dash-list-item">
+        <div class="dash-list-main">
+          <a href="/bills/${encodeURIComponent(b.source_session)}/${b.bill_id}" class="dash-list-link">
+            <span class="dash-bill-num">${escHtml(b.bill_number)}</span>
+            ${escHtml(truncate(b.title, 65))}
+          </a>
+        </div>
+        <div class="dash-list-meta">
+          ${statusBadge(b.status_desc)}
+          <span class="dash-date">${formatDate(b.last_action_date)}</span>
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+</script>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-disclaimer">
+        The Alabama Legislature&rsquo;s official site (<a href="https://alison.legislature.state.al.us" target="_blank">ALISON</a>)
+        is the authoritative source for all legislative information. This dashboard is an independent analysis tool
+        and may contain errors &mdash; always verify critical information against official sources.
+      </div>
+      <div style="margin-top:8px">Alabama Legislative Dashboard &middot; 2010&ndash;2026</div>
+    </div>
+  </footer>
+
+  <script src="/alabama-legislature-dashboard/static/js/app.js"></script>
+  <script>window.BASE_URL = "/alabama-legislature-dashboard";</script>
+  <script src="/alabama-legislature-dashboard/static/js/static-adapter.js"></script>
+  
+</body>
+</html>

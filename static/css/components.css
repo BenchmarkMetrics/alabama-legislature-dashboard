@@ -1,0 +1,271 @@
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.badge-r { background: var(--red-light); color: var(--red); }
+.badge-d { background: var(--blue-light); color: var(--blue); }
+.badge-i { background: var(--bg); color: var(--text-secondary); }
+.badge-passed { background: var(--green-light); color: var(--green); }
+.badge-failed { background: var(--red-light); color: var(--red); }
+.badge-introduced { background: var(--blue-light); color: var(--blue); }
+.badge-engrossed { background: var(--yellow-light); color: var(--yellow); }
+.badge-enrolled { background: var(--green-light); color: var(--green); }
+.badge-vetoed { background: var(--red-light); color: var(--red); }
+.badge-default { background: var(--bg); color: var(--text-secondary); }
+.badge-senate { background: #faf5ff; color: #6b46c1; }
+.badge-house { background: #fff5f5; color: #c53030; }
+.badge-yea { background: var(--green-light); color: var(--green); }
+.badge-nay { background: var(--red-light); color: var(--red); }
+.badge-nv { background: var(--bg); color: var(--text-muted); }
+.badge-absent { background: var(--yellow-light); color: var(--yellow); }
+
+/* ── Vote Bar ── */
+.vote-bar {
+  display: flex;
+  height: 22px;
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 150px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.vote-bar > span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  min-width: 0;
+  transition: width 0.3s;
+}
+.vote-bar .vb-yea { background: #38a169; }
+.vote-bar .vb-nay { background: #e53e3e; }
+.vote-bar .vb-nv { background: #a0aec0; }
+.vote-bar .vb-absent { background: #ecc94b; color: #744210; }
+
+.vote-bar-label {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.vote-bar-label span::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.vbl-yea::before { background: #38a169; }
+.vbl-nay::before { background: #e53e3e; }
+.vbl-nv::before { background: #a0aec0; }
+.vbl-absent::before { background: #ecc94b; }
+
+/* ── Timeline ── */
+.timeline {
+  position: relative;
+  padding-left: 24px;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  background: var(--border);
+}
+.timeline-item {
+  position: relative;
+  padding-bottom: 16px;
+}
+.timeline-item:last-child { padding-bottom: 0; }
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--primary);
+}
+.timeline-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.timeline-action {
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 2px;
+}
+.timeline-chamber {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── Legislator Card Grid ── */
+.legislator-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+.leg-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.15s;
+}
+.leg-card:hover { box-shadow: var(--shadow-md); }
+.leg-card-name {
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+.leg-card-name a { color: var(--text); }
+.leg-card-name a:hover { color: var(--accent); text-decoration: none; }
+.leg-card-meta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.leg-card-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.leg-card-stats strong {
+  color: var(--text);
+}
+
+/* ── Legislator Profile ── */
+.profile-header {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 24px;
+}
+.profile-name {
+  font-size: 24px;
+  font-weight: 700;
+}
+.profile-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.session-summary-table td { padding: 8px 14px; }
+
+/* ── Roll Call Detail ── */
+.rollcall-section {
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.rollcall-header {
+  padding: 12px 16px;
+  background: #f8f9fb;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.rollcall-header:hover { background: #f1f3f5; }
+.rollcall-desc {
+  font-weight: 600;
+  font-size: 13px;
+}
+.rollcall-date {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.rollcall-body {
+  padding: 16px;
+  display: none;
+}
+.rollcall-body.open { display: block; }
+
+/* ── Party Breakdown in votes ── */
+.party-breakdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+.party-group h4 {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+/* ── Sponsor List ── */
+.sponsor-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sponsor-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--bg);
+  border-radius: 16px;
+  font-size: 13px;
+}
+.sponsor-chip a { color: var(--text); font-weight: 500; }
+.sponsor-chip a:hover { color: var(--accent); }
+
+/* ── Docs List ── */
+.doc-list { list-style: none; }
+.doc-list li {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.doc-list li:last-child { border-bottom: none; }
+
+/* ── Agreement Table ── */
+.agreement-table td:last-child {
+  font-weight: 700;
+  text-align: right;
+}
+
+/* ── Charts Grid ── */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .legislator-grid { grid-template-columns: 1fr; }
+  .party-breakdown { grid-template-columns: 1fr; }
+  .profile-header { flex-direction: column; gap: 12px; }
+  .charts-row { grid-template-columns: 1fr; }
+}
