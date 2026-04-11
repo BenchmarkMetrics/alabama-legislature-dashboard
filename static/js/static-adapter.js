@@ -37,7 +37,21 @@
     }
 
     // Controversial bills
-    if (url === '/api/controversial') return `/api/controversial/${session}.json`;
+    if (url === '/api/controversial') return `/api/controversial/${session || 'default'}.json`;
+
+    // Bill list / search
+    if (url === '/api/bills') return `/api/bills/list/${session || '2026-2026_Regular_Session'}.json`;
+
+    // Bill statuses
+    if (url === '/api/bills/statuses') return '/api/bills/statuses.json';
+
+    // Bill topics
+    if (url === '/api/bills/topics') return '/api/bills/topics.json';
+
+    // Voting analysis
+    if (url === '/api/votes/party-line') return `/api/votes/party-line-${session}.json`;
+    if (url === '/api/votes/close') return `/api/votes/close-${session}.json`;
+    if (url === '/api/votes/bipartisan') return `/api/votes/bipartisan-${session}.json`;
 
     // Bill detail
     let m = url.match(/\/api\/bills\/([^/]+)\/([^/]+)$/);
