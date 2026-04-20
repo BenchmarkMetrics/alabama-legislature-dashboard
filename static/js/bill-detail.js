@@ -170,7 +170,7 @@ function renderSponsors(sponsors, session) {
         <div class="sponsor-list">
           ${sponsors.map(s => `
             <span class="sponsor-chip">
-              <a href="/alabama-legislature-dashboard/legislators/${s.people_id}">${escHtml(s.name)}</a>
+              <a href="/legislators/${s.people_id}">${escHtml(s.name)}</a>
               ${partyBadge(s.party)}
               ${s.position <= 1 ? '<span style="font-size:11px;color:var(--text-muted)">(primary)</span>' : ''}
             </span>
@@ -397,7 +397,7 @@ function renderVoteDetail(votes) {
             <tbody>
               ${byParty[p].map(v => `
                 <tr>
-                  <td><a href="/alabama-legislature-dashboard/legislators/${v.people_id}">${escHtml(v.name)}</a></td>
+                  <td><a href="/legislators/${v.people_id}">${escHtml(v.name)}</a></td>
                   <td>${v.district ? 'Dist. ' + escHtml(v.district) : ''}</td>
                   <td>${voteBadge(v.vote_desc)}</td>
                 </tr>

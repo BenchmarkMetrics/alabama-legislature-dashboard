@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.nav-links a').forEach(a => {
     const href = a.getAttribute('href');
     if (href === '/' && path === '/') a.classList.add('active');
-    else if (href !== '/' && path.startsWith(href) || path.startsWith('/alabama-legislature-dashboard' + href)) a.classList.add('active');
+    else if (href !== '/' && path.startsWith(href)) a.classList.add('active');
   });
 
   // Global nav search
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.legislators.length) {
         html += '<div class="nav-search-group-label">Legislators</div>';
         data.legislators.forEach(l => {
-          html += `<a class="nav-search-item" href="/alabama-legislature-dashboard/legislators/${l.people_id}">
+          html += `<a class="nav-search-item" href="/legislators/${l.people_id}">
             <div class="search-title">${escHtml(l.name)} ${partyBadge(l.party)}</div>
             <div class="search-meta">${l.role === 'Sen' ? 'Senate' : 'House'} District ${l.district} · ${l.sessions} session${l.sessions > 1 ? 's' : ''}</div>
           </a>`;
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.bills.length) {
         html += '<div class="nav-search-group-label">Bills</div>';
         data.bills.forEach(b => {
-          html += `<a class="nav-search-item" href="/alabama-legislature-dashboard/bills/${encodeURIComponent(b.source_session)}/${b.bill_id}">
+          html += `<a class="nav-search-item" href="/bills/${encodeURIComponent(b.source_session)}/${b.bill_id}">
             <div class="search-title">${escHtml(b.bill_number)} — ${escHtml(truncate(b.title, 60))}</div>
             <div class="search-meta">${escHtml(b.display_name)} · ${escHtml(b.status_desc || '')}</div>
           </a>`;

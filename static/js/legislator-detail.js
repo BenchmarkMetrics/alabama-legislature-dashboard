@@ -26,7 +26,7 @@ async function loadLegislator(peopleId) {
           <div style="flex:1">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
               <div class="profile-name">${escHtml(info.name)}</div>
-              ${window.INTERNAL_MODE ? `<a href="/alabama-legislature-dashboard/legislators/${peopleId}/report" target="_blank" class="btn btn-secondary" style="font-size:12px;padding:5px 12px">Print Report</a>` : ''}
+              ${window.INTERNAL_MODE ? `<a href="/legislators/${peopleId}/report" target="_blank" class="btn btn-secondary" style="font-size:12px;padding:5px 12px">Print Report</a>` : ''}
             </div>
             <div class="profile-meta">
               ${partyBadge(info.party)}
@@ -225,7 +225,7 @@ async function loadKeyVotes(peopleId, session) {
                 <div style="min-width:24px;font-size:12px;font-weight:700;color:var(--text-muted);padding-top:2px">#${i + 1}</div>
                 <div style="flex:1;min-width:0">
                   <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px">
-                    <a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(v.source_session || session)}/${v.bill_id}" style="font-weight:700;font-size:13px">${escHtml(v.bill_number)}</a>
+                    <a href="/bills/${encodeURIComponent(v.source_session || session)}/${v.bill_id}" style="font-weight:700;font-size:13px">${escHtml(v.bill_number)}</a>
                     ${voteBadge(v.vote_desc)}
                     ${brk}${close}${news}${controversy}${fiscal}
                     ${!session && v.session_display ? `<span style="font-size:10px;color:var(--text-muted)">${escHtml(v.session_display)}</span>` : ''}
@@ -464,7 +464,7 @@ function renderSponsoredBills(allBills, session, sessions) {
         <tbody>
           ${bills.map(b => `
             <tr>
-              <td class="td-nowrap"><a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(b.source_session)}/${b.bill_id}">${escHtml(b.bill_number)}</a></td>
+              <td class="td-nowrap"><a href="/bills/${encodeURIComponent(b.source_session)}/${b.bill_id}">${escHtml(b.bill_number)}</a></td>
               ${showSession ? `<td class="td-nowrap">${escHtml(b.display_name)}</td>` : ''}
               <td style="font-size:11px">${b.position <= 1 ? '<strong>Primary</strong>' : 'Co-sponsor'}</td>
               <td class="td-title">${escHtml(truncate(b.title, 90))}</td>
@@ -672,7 +672,7 @@ async function loadVotingRecord(peopleId, session, page = 1) {
             ${data.results.map(v => `
               <tr>
                 <td class="td-nowrap">${formatDate(v.date)}</td>
-                <td class="td-nowrap"><a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(session)}/${v.bill_id}">${escHtml(v.bill_number)}</a></td>
+                <td class="td-nowrap"><a href="/bills/${encodeURIComponent(session)}/${v.bill_id}">${escHtml(v.bill_number)}</a></td>
                 <td class="td-title">${escHtml(truncate(v.roll_call_desc || v.bill_title, 80))}</td>
                 <td>${voteBadge(v.vote_desc)}</td>
                 <td>${voteBar(v.yea, v.nay, v.nv, v.absent)}</td>
@@ -713,7 +713,7 @@ async function loadAgreement(peopleId, session) {
                 const color = showDisagreement ? 'var(--red)' : 'var(--green)';
                 return `
                   <tr>
-                    <td><a href="/alabama-legislature-dashboard/legislators/${r.people_id}">${escHtml(r.name)}</a></td>
+                    <td><a href="/legislators/${r.people_id}">${escHtml(r.name)}</a></td>
                     <td>${partyBadge(r.party)}</td>
                     <td>${r.district || '—'}</td>
                     <td>${r.shared_votes}</td>
@@ -880,7 +880,7 @@ async function loadCareerVulnerability(peopleId) {
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
               <div style="flex:1;min-width:250px">
                 <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;flex-wrap:wrap">
-                  <a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(v.source_session)}/${v.bill_id}" style="font-weight:700;font-size:13px">${escHtml(v.bill_number)}</a>
+                  <a href="/bills/${encodeURIComponent(v.source_session)}/${v.bill_id}" style="font-weight:700;font-size:13px">${escHtml(v.bill_number)}</a>
                   ${voteBadge(v.vote_desc)}
                   <span style="font-size:10px;color:var(--text-muted)">${escHtml(v.session_display || '')}</span>
                   ${v.news_count > 0 ? `<span style="font-size:9px;background:#e8f0fe;color:#2b6cb0;padding:1px 5px;border-radius:5px">${v.news_count} news</span>` : ''}
@@ -931,10 +931,10 @@ async function loadVulnerability(peopleId, session) {
         <div class="card-body" style="padding:16px 18px">
           <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--red);margin-bottom:6px">Most Vulnerable Vote This Session</div>
           <div style="font-size:15px;font-weight:600;margin-bottom:4px">
-            ${topAttack.length ? escHtml(topAttack[0]) : `${escHtml(data.legislator.name)} <a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(session)}/${topVote.bill_id}">${escHtml(topVote.bill_number)}</a>`}
+            ${topAttack.length ? escHtml(topAttack[0]) : `${escHtml(data.legislator.name)} <a href="/bills/${encodeURIComponent(session)}/${topVote.bill_id}">${escHtml(topVote.bill_number)}</a>`}
           </div>
           ${topAttack.length > 1 ? `<div style="font-size:13px;color:var(--text-secondary);margin-bottom:2px">${escHtml(topAttack[1])}</div>` : ''}
-          <div style="font-size:12px;color:var(--text-muted)">${escHtml(topVote.context)} &middot; <a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(session)}/${topVote.bill_id}">${escHtml(topVote.bill_number)}</a></div>
+          <div style="font-size:12px;color:var(--text-muted)">${escHtml(topVote.context)} &middot; <a href="/bills/${encodeURIComponent(session)}/${topVote.bill_id}">${escHtml(topVote.bill_number)}</a></div>
         </div>
       </div>
 
@@ -982,7 +982,7 @@ async function loadVulnerability(peopleId, session) {
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
                   <div style="flex:1;min-width:250px">
                     <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap">
-                      <a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(session)}/${v.bill_id}" style="font-weight:700;font-size:13px">${escHtml(v.bill_number)}</a>
+                      <a href="/bills/${encodeURIComponent(session)}/${v.bill_id}" style="font-weight:700;font-size:13px">${escHtml(v.bill_number)}</a>
                       ${voteBadge(v.vote_desc)}
                       ${v.news_count > 0 ? `<span style="font-size:10px;background:#e8f0fe;color:#2b6cb0;padding:1px 5px;border-radius:6px">${v.news_count} news</span>` : ''}
                     </div>
@@ -1066,7 +1066,7 @@ async function loadFiscalSummary(peopleId, session) {
 
     const topBillRows = data.top_bills.map(b => `
       <tr>
-        <td class="td-nowrap"><a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(b.source_session)}/${b.bill_id || ''}">${escHtml(b.bill_number)}</a></td>
+        <td class="td-nowrap"><a href="/bills/${encodeURIComponent(b.source_session)}/${b.bill_id || ''}">${escHtml(b.bill_number)}</a></td>
         <td class="td-title">${escHtml(b.title)}</td>
         <td class="td-nowrap" style="font-weight:600">${b.max_amount ? formatDollars(b.max_amount) : '-'}</td>
         <td><span style="color:${impactColor(b.impact_direction)};font-weight:600">${escHtml(b.impact_direction)}</span></td>
@@ -1170,7 +1170,7 @@ async function loadTaxVotes(peopleId, session) {
                 const stanceLabel = v.tax_stance === 'pro-tax' ? 'PRO-TAX' : 'ANTI-TAX';
                 return `<tr>
                   <td class="td-nowrap">${formatDate(v.date)}</td>
-                  <td class="td-nowrap"><a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(session)}/${v.bill_id}">${escHtml(v.bill_number)}</a></td>
+                  <td class="td-nowrap"><a href="/bills/${encodeURIComponent(session)}/${v.bill_id}">${escHtml(v.bill_number)}</a></td>
                   <td class="td-title" style="font-size:11px">${escHtml(truncate(v.title || '', 50))}</td>
                   <td>${voteBadge(v.vote_desc)}</td>
                   <td><span style="color:${stanceColor};font-weight:700;font-size:11px">${stanceLabel}</span></td>
@@ -1373,7 +1373,7 @@ async function loadToxicVotes(peopleId, session) {
             </div>
             ${cat.bills.map(b => `
               <div style="padding:4px 0;font-size:12px;border-top:1px solid var(--border)">
-                <a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(session)}/${b.bill_id}" style="font-weight:600">${escHtml(b.bill_number)}</a>
+                <a href="/bills/${encodeURIComponent(session)}/${b.bill_id}" style="font-weight:600">${escHtml(b.bill_number)}</a>
                 <span style="color:var(--text-secondary)">${escHtml(truncate(b.attack_angle || b.title || '', 80))}</span>
               </div>
             `).join('')}

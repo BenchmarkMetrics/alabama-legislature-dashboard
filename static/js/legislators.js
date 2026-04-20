@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
       gridEl.innerHTML = `<div class="legislator-grid">${data.results.map(leg => `
         <div class="leg-card">
           <div class="leg-card-name">
-            <a href="/alabama-legislature-dashboard/legislators/${leg.people_id}">${escHtml(leg.name)}</a>
+            <a href="/legislators/${leg.people_id}">${escHtml(leg.name)}</a>
           </div>
           <div class="leg-card-meta">
             ${partyBadge(leg.party)}

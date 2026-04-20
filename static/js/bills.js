@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const tbody = document.getElementById('bills-results');
       tbody.innerHTML = data.results.map(b => `
         <tr>
-          <td class="td-nowrap"><a href="/alabama-legislature-dashboard/bills/${encodeURIComponent(b.source_session)}/${b.bill_id}">${escHtml(b.bill_number)}</a></td>
+          <td class="td-nowrap"><a href="/bills/${encodeURIComponent(b.source_session)}/${b.bill_id}">${escHtml(b.bill_number)}</a></td>
           <td class="td-nowrap">${escHtml(b.display_name)}</td>
           <td class="td-title">${escHtml(truncate(b.title, 120))}</td>
           <td class="td-nowrap">${statusBadge(b.status_desc)}</td>
