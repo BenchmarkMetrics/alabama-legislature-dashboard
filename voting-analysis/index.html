@@ -1,101 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Voting Analysis — Alabama Legislative Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/alabama-legislature-dashboard/static/css/style.css">
-  <link rel="stylesheet" href="/alabama-legislature-dashboard/static/css/components.css">
-  <script>window.INTERNAL_MODE = false;</script>
+<meta charset="utf-8">
+<title>Moved — Alabama Legislature Dashboard</title>
+<meta name="robots" content="noindex">
+<script>
+(function () {
+  var newBase = 'https://db.matrixllc.com/legislature';
+  var oldBase = '/alabama-legislature-dashboard';
+  var path = location.pathname.indexOf(oldBase) === 0
+    ? location.pathname.slice(oldBase.length)
+    : location.pathname;
+  // Strip trailing index.html
+  path = path.replace(/\/index\.html$/, '/');
+  location.replace(newBase + path + location.search + location.hash);
+})();
+</script>
+<meta http-equiv="refresh" content="0; url=https://db.matrixllc.com/legislature/">
+<style>body{font-family:system-ui,sans-serif;max-width:560px;margin:10vh auto;padding:24px;color:#222}</style>
 </head>
 <body>
-  <nav class="nav">
-    <div class="container nav-inner">
-      <a href="/" class="nav-brand"><span>AL</span> Legislature</a>
-      <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/bills">Bills</a>
-        <a href="/legislators">Legislators</a>
-        <a href="/voting-analysis">Voting Analysis</a>
-        <a href="/controversial">Controversial</a>
-        <a href="/search">Full-Text Search</a>
-      </div>
-      <div class="nav-search" id="nav-search">
-        <input type="text" id="nav-search-input" placeholder="Search bills or legislators…" autocomplete="off">
-        <div class="nav-search-results" id="nav-search-results"></div>
-      </div>
-    </div>
-  </nav>
-
-  <main class="container">
-    
-<div class="page-header">
-  <h1>Voting Analysis</h1>
-  <p>Analyze voting patterns across party lines.</p>
-</div>
-
-<div class="tabs" id="analysis-tabs">
-  <button class="tab-btn active" data-tab="keyword">Keyword Voting</button>
-  <button class="tab-btn" data-tab="partyline">Party-Line Votes</button>
-  <button class="tab-btn" data-tab="close">Close Votes</button>
-  <button class="tab-btn" data-tab="bipartisan">Bipartisan Votes</button>
-</div>
-
-<div class="tab-panel active" id="tab-keyword">
-  <div class="filters" id="keyword-filters">
-    <div class="filter-group">
-      <label>Keyword</label>
-      <input type="text" id="keyword-input" placeholder="e.g. tax, gambling, education…" style="min-width:220px">
-    </div>
-    <div class="filter-group">
-      <label>Session</label>
-      <select id="kw-session" multiple size="1" style="min-width:250px"></select>
-    </div>
-    <div class="filter-group">
-      <label>Legislator</label>
-      <select id="kw-legislator" style="min-width:220px">
-        <option value="">All Legislators</option>
-      </select>
-    </div>
-    <div class="filter-group" style="align-self:center">
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;font-weight:500">
-        <input type="checkbox" id="kw-fulltext"> Search bill text
-      </label>
-      <span style="font-size:10px;color:var(--text-muted)">Searches inside PDFs, not just titles</span>
-    </div>
-    <button class="btn btn-primary" id="keyword-search-btn">Search</button>
-  </div>
-  <div id="keyword-results"><div class="empty-state">Enter a keyword to see how legislators voted on matching bills.</div></div>
-</div>
-
-<!-- Other tabs use this session selector -->
-<div id="other-tab-session" style="display:none;margin-bottom:16px">
-  <label for="analysis-session" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);display:block;margin-bottom:4px">Session</label>
-  <select id="analysis-session" style="font-family:var(--font);font-size:13px;padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);min-width:250px"></select>
-</div>
-<div class="tab-panel" id="tab-partyline"><div class="loading">Select a session…</div></div>
-<div class="tab-panel" id="tab-close"></div>
-<div class="tab-panel" id="tab-bipartisan"></div>
-
-  </main>
-
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-disclaimer">
-        The Alabama Legislature&rsquo;s official site (<a href="https://alison.legislature.state.al.us" target="_blank">ALISON</a>)
-        is the authoritative source for all legislative information. This dashboard is an independent analysis tool
-        and may contain errors &mdash; always verify critical information against official sources.
-      </div>
-      <div style="margin-top:8px">Alabama Legislative Dashboard &middot; 2010&ndash;2026</div>
-    </div>
-  </footer>
-
-  <script src="/alabama-legislature-dashboard/static/js/app.js"></script>
-  
-<script src="/alabama-legislature-dashboard/static/js/voting-analysis.js"></script>
-
+<h1>This dashboard has moved.</h1>
+<p>The Alabama Legislature Dashboard is now hosted at
+<a href="https://db.matrixllc.com/legislature/">db.matrixllc.com/legislature/</a>.
+Redirecting&hellip;</p>
 </body>
 </html>

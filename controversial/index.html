@@ -1,215 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controversial Bills — Alabama Legislative Dashboard</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/alabama-legislature-dashboard/static/css/style.css">
-  <link rel="stylesheet" href="/alabama-legislature-dashboard/static/css/components.css">
-  <script>window.INTERNAL_MODE = false;</script>
+<meta charset="utf-8">
+<title>Moved — Alabama Legislature Dashboard</title>
+<meta name="robots" content="noindex">
+<script>
+(function () {
+  var newBase = 'https://db.matrixllc.com/legislature';
+  var oldBase = '/alabama-legislature-dashboard';
+  var path = location.pathname.indexOf(oldBase) === 0
+    ? location.pathname.slice(oldBase.length)
+    : location.pathname;
+  // Strip trailing index.html
+  path = path.replace(/\/index\.html$/, '/');
+  location.replace(newBase + path + location.search + location.hash);
+})();
+</script>
+<meta http-equiv="refresh" content="0; url=https://db.matrixllc.com/legislature/">
+<style>body{font-family:system-ui,sans-serif;max-width:560px;margin:10vh auto;padding:24px;color:#222}</style>
 </head>
 <body>
-  <nav class="nav">
-    <div class="container nav-inner">
-      <a href="/" class="nav-brand"><span>AL</span> Legislature</a>
-      <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/bills">Bills</a>
-        <a href="/legislators">Legislators</a>
-        <a href="/voting-analysis">Voting Analysis</a>
-        <a href="/controversial">Controversial</a>
-        <a href="/search">Full-Text Search</a>
-      </div>
-      <div class="nav-search" id="nav-search">
-        <input type="text" id="nav-search-input" placeholder="Search bills or legislators…" autocomplete="off">
-        <div class="nav-search-results" id="nav-search-results"></div>
-      </div>
-    </div>
-  </nav>
-
-  <main class="container">
-    
-<div class="page-header">
-  <h1>Controversial Bills</h1>
-  <p>Bills flagged by close votes, party-line splits, intra-party dissent, and procedural fights.</p>
-</div>
-
-<div class="filters">
-  <div class="filter-group">
-    <label>Session</label>
-    <select id="cv-session"></select>
-  </div>
-  <div class="filter-group">
-    <label>Min Score</label>
-    <select id="cv-min-score">
-      <option value="0">All Flagged</option>
-      <option value="30">30+ (Notable)</option>
-      <option value="50" selected>50+ (Significant)</option>
-      <option value="75">75+ (Major)</option>
-      <option value="100">100+ (Extreme)</option>
-    </select>
-  </div>
-</div>
-
-<div id="cv-results"><div class="loading">Loading…</div></div>
-<div class="pagination" id="cv-pagination"></div>
-
-<script>
-document.addEventListener('DOMContentLoaded', async () => {
-  const sessionSelect = document.getElementById('cv-session');
-  const minScoreSelect = document.getElementById('cv-min-score');
-  const resultsEl = document.getElementById('cv-results');
-  const paginationEl = document.getElementById('cv-pagination');
-
-  populateSessionSelect(sessionSelect, '');
-
-  const params = getParams();
-  if (params.min_score) minScoreSelect.value = params.min_score;
-
-  setTimeout(() => {
-    if (params.session) sessionSelect.value = params.session;
-    loadControversial();
-  }, 300);
-
-  sessionSelect.addEventListener('change', () => loadControversial());
-  minScoreSelect.addEventListener('change', () => loadControversial());
-
-  async function loadControversial(page = 1) {
-    const p = {
-      session: sessionSelect.value,
-      min_score: minScoreSelect.value,
-      page
-    };
-    setParams(p);
-    showLoading(resultsEl);
-
-    try {
-      const data = await API.get('/api/controversial', p);
-      if (!data.results.length) {
-        showEmpty(resultsEl, 'No controversial bills found matching these filters.');
-        paginationEl.innerHTML = '';
-        return;
-      }
-
-      resultsEl.innerHTML = `
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">
-          <strong>${data.total.toLocaleString()}</strong> controversial bills found.
-          Scored by close votes, party-line splits, intra-party dissent, and procedural complexity.
-        </p>
-        ${data.results.map(b => renderControversialCard(b)).join('')}
-      `;
-
-      renderPagination(paginationEl, data, pg => loadControversial(pg));
-    } catch (e) {
-      resultsEl.innerHTML = '<div class="empty-state">Error loading data.</div>';
-    }
-  }
-});
-
-function renderControversialCard(b) {
-  const signals = JSON.parse(b.signals || '[]');
-  const scoreColor = b.controversy_score >= 100 ? 'var(--red)' :
-                     b.controversy_score >= 75 ? '#c05621' :
-                     b.controversy_score >= 50 ? 'var(--yellow)' : 'var(--text-muted)';
-
-  const rTotal = (b.r_yea || 0) + (b.r_nay || 0);
-  const dTotal = (b.d_yea || 0) + (b.d_nay || 0);
-
-  return `
-    <div class="card" style="margin-bottom:12px">
-      <div class="card-body" style="padding:16px 18px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
-          <div style="flex:1;min-width:300px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
-              <a href="/bills/${encodeURIComponent(b.source_session)}/${b.bill_id}" style="font-weight:700;font-size:16px">${escHtml(b.bill_number)}</a>
-              <span style="font-size:12px;color:var(--text-muted)">${escHtml(b.display_name)}</span>
-              ${b.status_desc ? statusBadge(b.status_desc) : ''}
-            </div>
-            <div style="font-size:13px;margin-bottom:8px">${escHtml(b.title)}</div>
-            <div style="display:flex;flex-wrap:wrap;gap:6px">
-              ${signals.map(s => `<span style="font-size:11px;background:var(--bg);border:1px solid var(--border);padding:2px 8px;border-radius:10px;color:var(--text-secondary)">${escHtml(s)}</span>`).join('')}
-            </div>
-          </div>
-          <div style="text-align:right;min-width:140px">
-            <div style="font-size:28px;font-weight:700;color:${scoreColor};line-height:1">${b.controversy_score}</div>
-            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Controversy Score</div>
-            ${rTotal > 0 || dTotal > 0 ? `
-              <div style="font-size:12px;margin-bottom:4px">
-                <span class="badge badge-r">R</span>
-                <span style="color:var(--green);font-weight:600">${b.r_yea}</span>Y /
-                <span style="color:var(--red);font-weight:600">${b.r_nay}</span>N
-              </div>
-              <div style="font-size:12px">
-                <span class="badge badge-d">D</span>
-                <span style="color:var(--green);font-weight:600">${b.d_yea}</span>Y /
-                <span style="color:var(--red);font-weight:600">${b.d_nay}</span>N
-              </div>
-            ` : ''}
-            ${b.closest_margin !== null ? `
-              <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
-                Closest margin: <strong>${b.closest_margin}</strong>
-              </div>
-            ` : ''}
-            ${b.news_count > 0 ? `
-              <div style="font-size:11px;margin-top:6px">
-                <span style="background:#e8f0fe;color:#2b6cb0;padding:2px 8px;border-radius:10px;font-weight:600;cursor:pointer" onclick="toggleNews(this, '${encodeURIComponent(b.source_session)}', ${b.bill_id})">${b.news_count} news article${b.news_count > 1 ? 's' : ''}</span>
-              </div>
-            ` : ''}
-          </div>
-        </div>
-        <div class="cv-news-panel" id="news-${b.bill_id}" style="display:none;border-top:1px solid var(--border);padding:12px 18px;background:#f8f9fb"></div>
-      </div>
-    </div>
-  `;
-}
-
-async function toggleNews(el, session, billId) {
-  const panel = document.getElementById('news-' + billId);
-  if (panel.style.display !== 'none') {
-    panel.style.display = 'none';
-    return;
-  }
-  panel.style.display = '';
-  if (!panel.dataset.loaded) {
-    panel.innerHTML = '<div class="loading" style="padding:8px">Loading…</div>';
-    try {
-      const articles = await API.get('/api/bills/' + session + '/' + billId + '/news');
-      if (!articles.length) {
-        panel.innerHTML = '<p style="color:var(--text-muted);font-size:12px">No articles found.</p>';
-      } else {
-        panel.innerHTML = articles.map(a => `
-          <div style="margin-bottom:8px;font-size:12px">
-            <a href="${escHtml(a.url)}" target="_blank" style="font-weight:600">${escHtml(a.headline)}</a>
-            <span style="color:var(--text-muted)"> — ${escHtml(a.source_name)}${a.date ? ', ' + escHtml(a.date) : ''}</span>
-            ${a.snippet ? `<div style="color:var(--text-secondary);margin-top:2px">${escHtml(a.snippet)}</div>` : ''}
-          </div>
-        `).join('');
-      }
-      panel.dataset.loaded = '1';
-    } catch(e) {
-      panel.innerHTML = '<p style="color:var(--text-muted);font-size:12px">Error loading news.</p>';
-    }
-  }
-}
-</script>
-
-  </main>
-
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-disclaimer">
-        The Alabama Legislature&rsquo;s official site (<a href="https://alison.legislature.state.al.us" target="_blank">ALISON</a>)
-        is the authoritative source for all legislative information. This dashboard is an independent analysis tool
-        and may contain errors &mdash; always verify critical information against official sources.
-      </div>
-      <div style="margin-top:8px">Alabama Legislative Dashboard &middot; 2010&ndash;2026</div>
-    </div>
-  </footer>
-
-  <script src="/alabama-legislature-dashboard/static/js/app.js"></script>
-  
+<h1>This dashboard has moved.</h1>
+<p>The Alabama Legislature Dashboard is now hosted at
+<a href="https://db.matrixllc.com/legislature/">db.matrixllc.com/legislature/</a>.
+Redirecting&hellip;</p>
 </body>
 </html>
