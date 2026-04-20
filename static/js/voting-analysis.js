@@ -92,75 +92,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     showLoading(el);
 
     try {
-      // Static mode: client-side keyword search using pre-built indexes
-      const BASE = window.BASE_URL || '';
-      const sessionsToSearch = selectedSessions.length ? selectedSessions : ['2026-2026_Regular_Session'];
-      let allMatches = [];
+      // Build query string
+      const useFulltext = document.getElementById('kw-fulltext').checked;
+      let qs = `q=${encodeURIComponent(keyword)}`;
+      selectedSessions.forEach(s => { qs += `&session=${encodeURIComponent(s)}`; });
+      if (peopleId) qs += `&people_id=${encodeURIComponent(peopleId)}`;
+      if (useFulltext) qs += '&fulltext=1';
 
-      for (const sess of sessionsToSearch) {
-        try {
-          const resp = await fetch(`${BASE}/api/votes/keyword-${sess}.json`);
-          if (!resp.ok) continue;
-          const bills = await resp.json();
-          const lower = keyword.toLowerCase();
-          const matches = bills.filter(b =>
-            b.bill_number.toLowerCase().includes(lower) || (b.title || '').toLowerCase().includes(lower)
-          );
-          allMatches = allMatches.concat(matches);
-        } catch(e) { /* skip session */ }
-      }
+      const resp = await fetch(`/api/votes/keyword?${qs}`);
+      const data = await resp.json();
 
-      if (!allMatches.length) {
+      if (data.error) { showEmpty(el, data.error); return; }
+      if (!data.results.length) {
         showEmpty(el, `No roll call votes found for bills matching "${escHtml(keyword)}".`);
         return;
       }
 
-      // Build aggregate results (per-bill summary since we don't have per-legislator data in static mode)
-      const data = {
-        results: allMatches.map(b => ({
-          bill_number: b.bill_number,
-          title: b.title,
-          status_desc: b.status_desc,
-          source_session: b.source_session,
-          bill_id: b.bill_id,
-          roll_call_count: b.roll_call_count,
-          r_yea: b.r_yea || 0,
-          r_nay: b.r_nay || 0,
-          d_yea: b.d_yea || 0,
-          d_nay: b.d_nay || 0,
-          total_yea: b.total_yea || 0,
-          total_nay: b.total_nay || 0,
-          last_rc_desc: b.last_rc_desc || '',
-          last_rc_date: b.last_rc_date || ''
-        })),
-        bills_matched: allMatches.length,
-        bills: allMatches.map(b => ({ bill_number: b.bill_number, title: b.title, status_desc: b.status_desc })),
-        mode: 'static'
-      };
-
-      // Render as a bill-centric table (static mode doesn't have per-legislator breakdowns)
-      el.innerHTML = `
-        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px">
-          <strong>${data.bills_matched}</strong> bills matching "<strong>${escHtml(keyword)}</strong>" —
-          showing last roll call summary with party splits.
-        </p>
-        <div class="card"><div class="table-wrap">
-          <table>
-            <thead><tr><th>Bill</th><th>Title</th><th>Status</th><th>R (Y/N)</th><th>D (Y/N)</th><th>Result</th><th>Roll Calls</th></tr></thead>
-            <tbody>${data.results.map(b => `
-              <tr>
-                <td><a href="${BASE}/bills/${b.source_session}/${b.bill_id}">${escHtml(b.bill_number)}</a></td>
-                <td style="max-width:350px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(b.title || '')}</td>
-                <td>${escHtml(b.status_desc || '')}</td>
-                <td>${b.r_yea}/${b.r_nay}</td>
-                <td>${b.d_yea}/${b.d_nay}</td>
-                <td>${b.total_yea}-${b.total_nay}</td>
-                <td>${b.roll_call_count}</td>
-              </tr>
-            `).join('')}</tbody>
-          </table>
-        </div></div>`;
-
+      if (data.mode === 'individual') {
+        renderIndividualResults(el, data, keyword, selectedSessions);
+      } else {
+        renderAggregateResults(el, data, keyword, selectedSessions);
+      }
     } catch (e) {
       el.innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
     }
